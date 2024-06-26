@@ -1,0 +1,108 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2312                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 250;
+
+boundaryField
+{
+    inlet
+    {
+        type            cyclic;
+        neighbourPatch  outlet;
+    }
+    outlet
+    {
+        type            cyclic;
+        neighbourPatch  inlet;
+    }
+    hotWall
+    {
+        type            fixedValue;
+        value           uniform 300;
+    }
+    coldWall
+    {
+        type            fixedValue;
+        value           uniform 200;
+    }
+    leftWalls
+    {
+        type            codedFixedValue;
+        value           uniform 250;
+        name            temperatureGradient;
+
+        code
+        #{
+            const fvPatch& boundaryPatch = patch();
+            const vectorField& Cf = boundaryPatch.Cf();
+
+            forAll(boundaryPatch, faceI)
+            {
+                scalar z = Cf[faceI].z();
+
+                scalar T;
+                if (z <= 2.0e-6)
+                {
+                    T = 200.0 + (300.0 - 200.0) * (z / 2.0e-6);  // Градиент от 200 до 300 K
+                }
+                else
+                {
+                    T = 300.0 - (300.0 - 200.0) * ((z - 2.0e-6) / 2.0e-6);  // Градиент от 300 до 200 K
+                }
+
+                operator[](faceI) = T;
+            }
+        #};
+    }
+    rightWalls
+    {
+        type            codedFixedValue;
+        value           uniform 250;
+        name            temperatureGradient;
+
+        code
+        #{
+            const fvPatch& boundaryPatch = patch();
+            const vectorField& Cf = boundaryPatch.Cf();
+
+            forAll(boundaryPatch, faceI)
+            {
+                scalar z = Cf[faceI].z();
+
+                scalar T;
+                if (z <= 2.0e-6)
+                {
+                    T = 200.0 + (300.0 - 200.0) * (z / 2.0e-6);  // Градиент от 200 до 300 K
+                }
+                else
+                {
+                    T = 300.0 - (300.0 - 200.0) * ((z - 2.0e-6) / 2.0e-6);  // Градиент от 300 до 200 K
+                }
+
+                operator[](faceI) = T;
+            }
+        #};
+    }
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //
+

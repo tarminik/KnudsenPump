@@ -1,0 +1,118 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    inlet
+    {
+        type            cyclic;
+        neighbourPatch  outlet;
+    }
+
+    outlet
+    {
+        type            cyclic;
+        neighbourPatch  inlet;
+    }
+    
+    hotWall
+    {
+        type            slip;
+    }
+    
+    coldWall
+    {
+        type            slip;
+    }
+    
+    leftWalls
+    {
+        type            codedFixedValue;
+        value           uniform (0 0 0);
+        name            tangentialVelocity;
+
+        code
+        #{
+            const fvPatch& boundaryPatch = patch();
+            const vectorField& Cf = boundaryPatch.Cf();
+            const volScalarField& T = this->db().lookupObject<volScalarField>("T");
+
+            scalar mu = 1.85e-5; // Вязкость воздуха при комнатной температуре в Па·с
+            scalar rho = 1.2;    // Плотность воздуха при комнатной температуре в кг/м^3
+
+            forAll(boundaryPatch, faceI)
+            {
+            	scalar z = Cf[faceI].z();
+                vector Us = vector::zero;
+                
+                if (z <= 2.0e-6)
+                {
+                    Us[2] = (4.0 / 3.0) * (mu / (rho * T[faceI])) * 5.0e7;
+                }
+                else
+                {
+                    Us[2] = -(4.0 / 3.0) * (mu / (rho * T[faceI])) * 5.0e7;
+                }
+                operator[](faceI) = Us;
+            }
+        #};
+    }
+    
+    rightWalls
+    {
+        type            codedFixedValue;
+        value           uniform (0 0 0);
+        name            tangentialVelocity;
+
+        code
+        #{
+            const fvPatch& boundaryPatch = patch();
+            const vectorField& Cf = boundaryPatch.Cf();
+            const volScalarField& T = this->db().lookupObject<volScalarField>("T");
+
+            scalar mu = 1.85e-5; // Вязкость воздуха при комнатной температуре в Па·с
+            scalar rho = 1.2;    // Плотность воздуха при комнатной температуре в кг/м^3
+
+            forAll(boundaryPatch, faceI)
+            {
+            	scalar z = Cf[faceI].z();
+                vector Us = vector::zero;
+                
+                if (z <= 2.0e-6)
+                {
+                    Us[2] = (4.0 / 3.0) * (mu / (rho * T[faceI])) * 5.0e7;
+                }
+                else
+                {
+                    Us[2] = -(4.0 / 3.0) * (mu / (rho * T[faceI])) * 5.0e7;
+                }
+                operator[](faceI) = Us;
+            }
+        #};
+    }
+    
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //
+
