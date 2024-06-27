@@ -51,7 +51,7 @@ To install and run the project, follow these steps:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/username/KnudsenPump.git
+   git clone https://github.com/tarminik/KnudsenPump.git
    
    cd KnudsenPump
    ```
